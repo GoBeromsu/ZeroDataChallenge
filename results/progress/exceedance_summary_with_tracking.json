@@ -1,0 +1,184 @@
+{
+  "analysis": "WHO NO2 Guideline Exceedance Progression with Year-over-Year Tracking",
+  "configuration": {
+    "who_guideline_no2": 10,
+    "annual_reduction_ratio": 0.06,
+    "annual_reduction_pct": 6.0,
+    "start_year": 2025,
+    "target_year": 2040,
+    "period_gap": 5
+  },
+  "overall_results": {
+    "total_locations": 217,
+    "initial_exceeding": 209,
+    "final_exceeding": 100,
+    "total_reduction": 109,
+    "reduction_percentage": 52.15,
+    "expected_cumulative_reduction_pct": 60.47
+  },
+  "period_analysis": [
+    {
+      "period": "2025-2030",
+      "years": 5,
+      "start_points": 209,
+      "end_points": 199,
+      "reduction": 10,
+      "reduction_pct": 4.784688995215311,
+      "expected_end": 153,
+      "vs_expected": 46,
+      "avg_no2_start": 26.11,
+      "avg_no2_end": 19.7
+    },
+    {
+      "period": "2030-2035",
+      "years": 5,
+      "start_points": 199,
+      "end_points": 164,
+      "reduction": 35,
+      "reduction_pct": 17.587939698492463,
+      "expected_end": 146,
+      "vs_expected": 18,
+      "avg_no2_start": 19.7,
+      "avg_no2_end": 15.69
+    },
+    {
+      "period": "2035-2040",
+      "years": 5,
+      "start_points": 164,
+      "end_points": 100,
+      "reduction": 64,
+      "reduction_pct": 39.02439024390244,
+      "expected_end": 120,
+      "vs_expected": -20,
+      "avg_no2_start": 15.69,
+      "avg_no2_end": 13.35
+    }
+  ],
+  "top_improvement_periods": [
+    {
+      "period": "2035-2040",
+      "years": 5,
+      "start_points": 164,
+      "end_points": 100,
+      "reduction": 64,
+      "reduction_pct": 39.02439024390244,
+      "expected_end": 120,
+      "vs_expected": -20,
+      "avg_no2_start": 15.69,
+      "avg_no2_end": 13.35
+    },
+    {
+      "period": "2030-2035",
+      "years": 5,
+      "start_points": 199,
+      "end_points": 164,
+      "reduction": 35,
+      "reduction_pct": 17.587939698492463,
+      "expected_end": 146,
+      "vs_expected": 18,
+      "avg_no2_start": 19.7,
+      "avg_no2_end": 15.69
+    },
+    {
+      "period": "2025-2030",
+      "years": 5,
+      "start_points": 209,
+      "end_points": 199,
+      "reduction": 10,
+      "reduction_pct": 4.784688995215311,
+      "expected_end": 153,
+      "vs_expected": 46,
+      "avg_no2_start": 26.11,
+      "avg_no2_end": 19.7
+    }
+  ],
+  "concentration_trends": {
+    "avg_no2_start": 26.11,
+    "avg_no2_end": 13.35,
+    "avg_no2_reduction": 12.76,
+    "max_no2_start": 56.32,
+    "max_no2_end": 22.26,
+    "avg_exceedance_start": 16.11,
+    "avg_exceedance_end": 3.35
+  },
+  "projection_accuracy": {
+    "periods_analyzed": 4,
+    "formula": "Points(year) = Points(2024) \u00d7 (1 - 0.06)^years",
+    "accuracy_by_period": []
+  },
+  "yearly_progression": [
+    {
+      "year": 2025,
+      "total_exceeding_points": 209,
+      "who_guideline_no2": 10,
+      "annual_reduction_ratio": 0.06,
+      "annual_reduction_pct": 6.0,
+      "years_since_baseline": 1,
+      "cumulative_reduction_factor": 0.94,
+      "improved_from_previous_year": 0,
+      "worsened_from_previous_year": 0,
+      "unchanged_from_previous_year": 0,
+      "average_exceedance": 16.11,
+      "max_no2": 56.32,
+      "min_no2": 10.45,
+      "avg_no2": 26.11
+    },
+    {
+      "year": 2030,
+      "total_exceeding_points": 199,
+      "who_guideline_no2": 10,
+      "annual_reduction_ratio": 0.06,
+      "annual_reduction_pct": 6.0,
+      "years_since_baseline": 6,
+      "cumulative_reduction_factor": 0.6898697810559997,
+      "improved_from_previous_year": 199,
+      "worsened_from_previous_year": 0,
+      "unchanged_from_previous_year": 0,
+      "average_exceedance": 9.7,
+      "max_no2": 41.33,
+      "min_no2": 10.07,
+      "avg_no2": 19.7,
+      "avg_yoy_improvement_pct": -6.0,
+      "points_meeting_reduction_target": 105,
+      "pct_meeting_reduction_target": 52.76
+    },
+    {
+      "year": 2035,
+      "total_exceeding_points": 164,
+      "who_guideline_no2": 10,
+      "annual_reduction_ratio": 0.06,
+      "annual_reduction_pct": 6.0,
+      "years_since_baseline": 11,
+      "cumulative_reduction_factor": 0.5062982072492054,
+      "improved_from_previous_year": 164,
+      "worsened_from_previous_year": 0,
+      "unchanged_from_previous_year": 0,
+      "average_exceedance": 5.69,
+      "max_no2": 30.33,
+      "min_no2": 10.01,
+      "avg_no2": 15.69,
+      "avg_yoy_improvement_pct": -6.0,
+      "points_meeting_reduction_target": 84,
+      "pct_meeting_reduction_target": 51.22
+    },
+    {
+      "year": 2040,
+      "total_exceeding_points": 100,
+      "who_guideline_no2": 10,
+      "annual_reduction_ratio": 0.06,
+      "annual_reduction_pct": 6.0,
+      "years_since_baseline": 16,
+      "cumulative_reduction_factor": 0.3715742908341006,
+      "improved_from_previous_year": 100,
+      "worsened_from_previous_year": 0,
+      "unchanged_from_previous_year": 0,
+      "average_exceedance": 3.35,
+      "max_no2": 22.26,
+      "min_no2": 10.13,
+      "avg_no2": 13.35,
+      "avg_yoy_improvement_pct": -6.0,
+      "points_meeting_reduction_target": 45,
+      "pct_meeting_reduction_target": 45.0
+    }
+  ]
+}
