@@ -1,37 +1,62 @@
-# Air Quality Projection Analysis Tool
+# Net Zero Data Challenge 2025
 
-## Net Zero Data Challenge 2025
-This project is participating in the **Net Zero Data Challenge 2025**.
+## Dynamic Clean Air Zone (CAZ) Management System
 
+### Competition Details
 - **Organizers**: YHODA (Yorkshire & Humber Office for Data Analytics), YPIP, University of Sheffield, UKRI ESRC
 - **Date**: September 15-19, 2025
 - **Venue**: The Diamond, University of Sheffield
 - **Sponsored by**: South Yorkshire Sustainability Centre
 
-## Overview
-This project analyzes Sheffield's air quality monitoring data to project how locations exceeding WHO guidelines will decrease over time. It was developed for the Net Zero Data Challenge 2025.
+### Project Overview
+This system provides dynamic Clean Air Zone (CAZ) management tools for Sheffield, enabling real-time analysis and projection of air quality improvements. The platform allows policymakers to dynamically adjust CAZ boundaries and parameters based on air quality monitoring data, helping achieve WHO air quality guidelines through data-driven decision making.
+
+## Key Features
+- **Dynamic CAZ Boundary Adjustment**: Modify Clean Air Zone boundaries based on real-time air quality data
+- **Interactive Dashboard**: Visualize current air quality status and projected improvements
+- **Data-Driven Projections**: Simulate various reduction scenarios to optimize CAZ effectiveness
+- **Clustering Analysis**: Identify pollution hotspots using K-means clustering for targeted interventions
 
 ## Key Findings
 - 209 out of 217 monitoring locations exceed WHO NO2 guidelines (10 µg/m³)
-- With 6% annual reduction, exceeding locations decrease to 100 by 2040
+- With dynamic CAZ implementation and 6% annual reduction, exceeding locations decrease to 100 by 2040
 - Average NO2 concentration reduces from 26.11 to 13.35 µg/m³
 
-## Usage
+## Components
 
-#### Basic Usage
+### 1. CAZ Dashboard (Interactive Web Interface)
 ```bash
-python analyze_reduction_ratio.py
+streamlit run caz_dashboard.py
 ```
+Provides interactive visualization and analysis of Clean Air Zone data with real-time updates.
+
+### 2. Dynamic CAZ Projection Tool
+```bash
+python dynamic_caz_projection.py
+```
+Projects air quality improvements based on dynamic CAZ policies.
 
 #### Custom Parameters
 ```bash
-python analyze_reduction_ratio.py \
+python dynamic_caz_projection.py \
   --start-year 2025 \
   --baseline-year 2024 \
   --target-year 2040 \
   --reduction-ratio 0.06 \
   --period-gap 5
 ```
+
+### 3. CAZ Baseline Filter
+```bash
+python caz_baseline_filter.py
+```
+Filters and prepares baseline air quality data for CAZ analysis.
+
+### 4. CAZ Map Generator
+```bash
+python caz_map_generator.py
+```
+Generates static and interactive maps showing CAZ boundaries and air quality data.
 
 ## Parameters
 
@@ -105,11 +130,16 @@ Tracks for each location:
 - Final exceeding points: 100 (projected 2040)
 - Total reduction: 109 points (52.15%)
 
-## Example Command
+## Example Commands
 
-#### Standard 6% Reduction Scenario
+#### Launch Interactive CAZ Dashboard
 ```bash
-python analyze_reduction_ratio.py \
+streamlit run caz_dashboard.py
+```
+
+#### Run Dynamic CAZ Projection (6% Reduction Scenario)
+```bash
+python dynamic_caz_projection.py \
   --start-year 2025 \
   --baseline-year 2024 \
   --reduction-ratio 0.06 \
@@ -142,5 +172,17 @@ This command will:
 
 ## Technologies
 - Python 3.x
-- Standard library only (json, argparse, pathlib)
+- Streamlit for interactive dashboard
+- Folium for dynamic map visualization
+- Plotly for interactive charts
+- Pandas for data analysis
+- Scikit-learn for K-means clustering
 - Output: GeoJSON files compatible with GIS tools
+
+## Dynamic CAZ Management Approach
+The system enables dynamic Clean Air Zone management through:
+1. **Real-time Monitoring**: Continuous analysis of air quality data from 217 monitoring locations
+2. **Adaptive Boundaries**: CAZ boundaries that can be adjusted based on pollution patterns
+3. **Scenario Modeling**: Test different reduction targets and timelines
+4. **Impact Assessment**: Evaluate CAZ effectiveness through data visualization
+5. **Policy Optimization**: Data-driven recommendations for CAZ modifications

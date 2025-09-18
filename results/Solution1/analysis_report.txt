@@ -1,0 +1,46 @@
+======================================================================
+SHEFFIELD CLEAN AIR ZONE (CAZ) ANALYSIS REPORT
+======================================================================
+
+DATA SUMMARY:
+- Total Traffic Monitoring Points: 23
+- Total Air Quality Monitoring Points: 217
+
+AIR QUALITY STATISTICS:
+- Sites exceeding WHO NO2 guideline: 217/217
+- Average NO2 concentration (2020-2024): 30.64 µg/m³
+- WHO guideline: 10 µg/m³
+
+CAZ CANDIDATE ZONES:
+--------------------------------------------------
+
+CAZ Candidate 1:
+  Coordinates: (53.383121, -1.465052)
+  Key Areas: Suffolk Road SCC CW, Pure Gym, St Mary's Road SCC CW, 08/23 Parkway Layby 1  SCC CW
+  Major Roads: A61
+  Monitoring Points Statistics:
+    - Traffic monitoring points: 6
+    - Air quality monitoring points: 101
+    - Total points in cluster: 107
+
+CAZ Candidate 2:
+  Coordinates: (53.399990, -1.410107)
+  Key Areas: Warren lane SCC CW, 7 Bawtry Gate SCC CW, 47 Bawtry Road SCC CW
+  Major Roads: M1, A630, A57
+  Monitoring Points Statistics:
+    - Traffic monitoring points: 14
+    - Air quality monitoring points: 42
+    - Total points in cluster: 56
+
+CAZ Candidate 3:
+  Coordinates: (53.371225, -1.498336)
+  Key Areas: Loxley New Road SCC CW, Fielding Road SCC CW, University Roundabout SCC CW
+  Major Roads: A61
+  Monitoring Points Statistics:
+    - Traffic monitoring points: 3
+    - Air quality monitoring points: 74
+    - Total points in cluster: 77
+
+======================================================================
+Analysis complete. Results saved in Solution1 folder.
+======================================================================
