@@ -22,11 +22,12 @@ st.set_page_config(
     page_title="Sheffield CAZ Analysis",
     page_icon="🌬️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS for better styling and larger components
-st.markdown("""
+st.markdown(
+    """
     <style>
     .main {
         padding: 0rem 0rem;
@@ -128,27 +129,65 @@ st.markdown("""
         line-height: 1.7;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
 # Title and description
 st.title("🌍 Sheffield Clean Air Zone (CAZ) Analysis Dashboard")
-st.markdown("""
+st.markdown(
+    """
     **Interactive visualization of potential Clean Air Zones based on traffic volume and air quality monitoring data**
-""")
+"""
+)
+
 
 # Load data
 @st.cache_data
 def load_data():
     """Load and cache the geospatial data"""
-    BASE_DIR = "/Users/beomsu/Documents/ZeroDataChallenge/results"
-    traffic = gpd.read_file(os.path.join(BASE_DIR, "Sheffield_Traffic_Top30_2020_2024.geojson"))
-    pollution = gpd.read_file(os.path.join(BASE_DIR, "Air_Quality_Diffusion_Tubes_Filtered_2020_2024.geojson"))
+    # Use relative path that works both locally and on Streamlit Cloud
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.join(current_dir, "results")
+
+    # Define file paths
+    traffic_file = os.path.join(BASE_DIR, "Sheffield_Traffic_Top30_2020_2024.geojson")
+    pollution_file = os.path.join(BASE_DIR, "Air_Quality_Diffusion_Tubes_Filtered_2020_2024.geojson")
+
+    # Check if files exist and provide helpful error messages
+    if not os.path.exists(BASE_DIR):
+        st.error(f"Results directory not found. Looking for: {BASE_DIR}")
+        st.info("Please ensure the 'results' folder is in the same directory as streamlit_app.py")
+        st.stop()
+
+    if not os.path.exists(traffic_file):
+        st.error(f"Traffic data file not found: Sheffield_Traffic_Top30_2020_2024.geojson")
+        st.info(f"Looking in: {BASE_DIR}")
+        available_files = os.listdir(BASE_DIR) if os.path.exists(BASE_DIR) else []
+        if available_files:
+            st.info(f"Available files in results folder: {', '.join(available_files)}")
+        st.stop()
+
+    if not os.path.exists(pollution_file):
+        st.error(f"Pollution data file not found: Air_Quality_Diffusion_Tubes_Filtered_2020_2024.geojson")
+        st.info(f"Looking in: {BASE_DIR}")
+        st.stop()
+
+    # Load the data
+    try:
+        traffic = gpd.read_file(traffic_file)
+        pollution = gpd.read_file(pollution_file)
+    except Exception as e:
+        st.error(f"Error loading data files: {str(e)}")
+        st.info("Please check that the GeoJSON files are valid and not corrupted.")
+        st.stop()
 
     # Ensure WGS84 projection
     traffic = traffic.to_crs(epsg=4326)
     pollution = pollution.to_crs(epsg=4326)
 
     return traffic, pollution
+
 
 def perform_clustering(traffic, pollution, n_clusters=3):
     """Perform K-means clustering to identify CAZ candidates"""
@@ -173,21 +212,30 @@ def perform_clustering(traffic, pollution, n_clusters=3):
     for i in range(n_clusters):
         cluster_mask = labels == i
         clusters_gdf.loc[i, "n_points"] = np.sum(cluster_mask)
-        clusters_gdf.loc[i, "pollution_points"] = np.sum(cluster_mask[len(traffic_points):])
-        clusters_gdf.loc[i, "traffic_points"] = np.sum(cluster_mask[:len(traffic_points)])
+        clusters_gdf.loc[i, "pollution_points"] = np.sum(
+            cluster_mask[len(traffic_points) :]
+        )
+        clusters_gdf.loc[i, "traffic_points"] = np.sum(
+            cluster_mask[: len(traffic_points)]
+        )
 
         # Find key locations
-        pollution_in_cluster = pollution.iloc[cluster_mask[len(traffic_points):]]
+        pollution_in_cluster = pollution.iloc[cluster_mask[len(traffic_points) :]]
         if len(pollution_in_cluster) > 0:
-            site_names = pollution_in_cluster['defrasitename'].dropna().unique()
-            clusters_gdf.loc[i, "key_locations"] = ", ".join(site_names[:3]) if len(site_names) > 0 else "Unknown"
+            site_names = pollution_in_cluster["defrasitename"].dropna().unique()
+            clusters_gdf.loc[i, "key_locations"] = (
+                ", ".join(site_names[:3]) if len(site_names) > 0 else "Unknown"
+            )
 
-        traffic_in_cluster = traffic.iloc[cluster_mask[:len(traffic_points)]]
+        traffic_in_cluster = traffic.iloc[cluster_mask[: len(traffic_points)]]
         if len(traffic_in_cluster) > 0:
-            road_names = traffic_in_cluster['road_name'].dropna().unique()
-            clusters_gdf.loc[i, "major_roads"] = ", ".join(road_names[:3]) if len(road_names) > 0 else "N/A"
+            road_names = traffic_in_cluster["road_name"].dropna().unique()
+            clusters_gdf.loc[i, "major_roads"] = (
+                ", ".join(road_names[:3]) if len(road_names) > 0 else "N/A"
+            )
 
     return clusters_gdf, labels
+
 
 # Load data
 traffic, pollution = load_data()
@@ -202,7 +250,7 @@ with st.sidebar:
         min_value=1,
         max_value=5,
         value=3,
-        help="Number of potential Clean Air Zones to identify"
+        help="Number of potential Clean Air Zones to identify",
     )
 
     # Map style
@@ -210,19 +258,21 @@ with st.sidebar:
     map_style = st.selectbox(
         "Map Style",
         options=["OpenStreetMap", "CartoDB Positron", "CartoDB Dark Matter"],
-        index=1
+        index=1,
     )
 
     # Data period info
     st.markdown("---")
-    st.info("""
+    st.info(
+        """
     **📅 Data Period**
 
     All data shown: **2020-2024**
     - Traffic monitoring data
     - Air quality measurements (NO2)
     - 5-year averages calculated
-    """)
+    """
+    )
 
 # Use all data without filtering
 traffic_filtered = traffic
@@ -232,7 +282,9 @@ pollution_filtered = pollution
 clusters_gdf, labels = perform_clustering(traffic_filtered, pollution_filtered, n_zones)
 
 # Main content area
-tab1, tab2, tab3, tab4 = st.tabs(["📍 Interactive Map", "📊 Statistics", "📈 Analysis", "📝 Report"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📍 Interactive Map", "📊 Statistics", "📈 Analysis", "📝 Report"]
+)
 
 with tab1:
     st.header("Interactive CAZ Map")
@@ -248,7 +300,9 @@ with tab1:
     with col4:
         point_size = st.slider("Point Size", 3, 15, 7, help="Adjust marker size")
     with col5:
-        zone_radius = st.slider("Zone Radius (km)", 0.5, 3.0, 1.5, 0.1, help="CAZ zone radius")
+        zone_radius = st.slider(
+            "Zone Radius (km)", 0.5, 3.0, 1.5, 0.1, help="CAZ zone radius"
+        )
 
     # Create folium map
     center_lat = np.mean([geom.y for geom in pollution.geometry])
@@ -257,22 +311,29 @@ with tab1:
     m = folium.Map(
         location=[center_lat, center_lon],
         zoom_start=11,
-        tiles=map_style.replace(" ", "").lower() if map_style != "OpenStreetMap" else "OpenStreetMap"
+        tiles=(
+            map_style.replace(" ", "").lower()
+            if map_style != "OpenStreetMap"
+            else "OpenStreetMap"
+        ),
     )
 
     # Add traffic points with adjustable size
     if show_traffic:
         for idx, row in traffic_filtered.iterrows():
-            vehicles = row.get('all_motor_vehicles', 'N/A')
-            road = row.get('road_name', 'Unknown')
-            year = row.get('year', 'N/A')
+            vehicles = row.get("all_motor_vehicles", "N/A")
+            road = row.get("road_name", "Unknown")
+            year = row.get("year", "N/A")
+
+            # Format vehicle count properly
+            vehicles_text = f"{vehicles:,}" if isinstance(vehicles, (int, float)) and vehicles != 'N/A' else str(vehicles)
 
             popup_text = f"""
             <div style='font-size: 14px;'>
                 <b>🚗 Traffic Monitoring Point</b><br>
                 <b>Road:</b> {road}<br>
                 <b>Year:</b> {year}<br>
-                <b>Total Vehicles:</b> {vehicles:,} if vehicles != 'N/A' else {vehicles}
+                <b>Total Vehicles:</b> {vehicles_text}
             </div>
             """
 
@@ -280,34 +341,37 @@ with tab1:
                 location=[row.geometry.y, row.geometry.x],
                 radius=point_size,
                 popup=folium.Popup(popup_text, max_width=300),
-                color='#FF6B35',
+                color="#FF6B35",
                 fill=True,
                 fillOpacity=0.7,
-                weight=2
+                weight=2,
             ).add_to(m)
 
     # Add pollution points with adjustable size
     if show_pollution:
         for idx, row in pollution_filtered.iterrows():
-            avg_no2 = row.get('avg_no2_2020_2024', 0)
-            site_name = row.get('defrasitename', 'Unknown')
-            no2_2024 = row.get('no2_2024', 'N/A')
+            avg_no2 = row.get("avg_no2_2020_2024", 0)
+            site_name = row.get("defrasitename", "Unknown")
+            no2_2024 = row.get("no2_2024", "N/A")
 
             if avg_no2 > 40:
-                color = '#DC143C'
+                color = "#DC143C"
                 level = "High"
             elif avg_no2 > 25:
-                color = '#FF8C00'
+                color = "#FF8C00"
                 level = "Medium"
             else:
-                color = '#32CD32'
+                color = "#32CD32"
                 level = "Low"
+
+            # Format NO2 values properly
+            no2_2024_text = f"{no2_2024:.1f} µg/m³" if isinstance(no2_2024, (int, float)) and no2_2024 != 'N/A' else str(no2_2024)
 
             popup_text = f"""
             <div style='font-size: 14px;'>
                 <b>🌬️ Air Quality Site</b><br>
                 <b>Location:</b> {site_name}<br>
-                <b>2024 NO2:</b> {no2_2024:.1f} µg/m³ if no2_2024 != 'N/A' else {no2_2024}<br>
+                <b>2024 NO2:</b> {no2_2024_text}<br>
                 <b>5-Year Avg:</b> {avg_no2:.1f} µg/m³<br>
                 <b>Level:</b> <span style='color: {color}'>{level}</span>
             </div>
@@ -320,7 +384,7 @@ with tab1:
                 color=color,
                 fill=True,
                 fillOpacity=0.8,
-                weight=2
+                weight=2,
             ).add_to(m)
 
     # Add CAZ zones with adjustable radius
@@ -338,28 +402,33 @@ with tab1:
         folium.Marker(
             location=[row.geometry.y, row.geometry.x],
             popup=folium.Popup(popup_text, max_width=400),
-            icon=folium.Icon(color='blue', icon='star', prefix='fa'),
-            tooltip=f"{row['Cluster']}"
+            icon=folium.Icon(color="blue", icon="star", prefix="fa"),
+            tooltip=f"{row['Cluster']}",
         ).add_to(m)
 
         # Add zone circle with adjustable radius
         folium.Circle(
             location=[row.geometry.y, row.geometry.x],
             radius=zone_radius * 1000,  # Convert km to meters
-            color='#1E90FF',
+            color="#1E90FF",
             fill=True,
             fillOpacity=0.15,
             weight=3,
-            dashArray='10, 5'
+            dashArray="10, 5",
         ).add_to(m)
 
     # Add heatmap
-    if show_heatmap and 'avg_no2_2020_2024' in pollution.columns:
+    if show_heatmap and "avg_no2_2020_2024" in pollution.columns:
         heat_data = [
-            [row.geometry.y, row.geometry.x, row['avg_no2_2020_2024']]
+            [row.geometry.y, row.geometry.x, row["avg_no2_2020_2024"]]
             for idx, row in pollution_filtered.iterrows()
         ]
-        HeatMap(heat_data, radius=20, blur=15, gradient={0.0: 'green', 0.5: 'yellow', 1.0: 'red'}).add_to(m)
+        HeatMap(
+            heat_data,
+            radius=20,
+            blur=15,
+            gradient={0.0: "green", 0.5: "yellow", 1.0: "red"},
+        ).add_to(m)
 
     # Display map with larger size
     st_folium(m, width=None, height=800, returned_objects=[], use_container_width=True)
@@ -374,53 +443,75 @@ with tab2:
         st.metric(
             "Traffic Points",
             len(traffic_filtered),
-            f"{len(traffic_filtered) - len(traffic)} filtered" if len(traffic_filtered) < len(traffic) else None
+            (
+                f"{len(traffic_filtered) - len(traffic)} filtered"
+                if len(traffic_filtered) < len(traffic)
+                else None
+            ),
         )
 
     with col2:
         st.metric(
             "Air Quality Sites",
             len(pollution_filtered),
-            f"{len(pollution_filtered) - len(pollution)} filtered" if len(pollution_filtered) < len(pollution) else None
+            (
+                f"{len(pollution_filtered) - len(pollution)} filtered"
+                if len(pollution_filtered) < len(pollution)
+                else None
+            ),
         )
 
     with col3:
-        avg_no2 = pollution['avg_no2_2020_2024'].mean() if 'avg_no2_2020_2024' in pollution.columns else 0
+        avg_no2 = (
+            pollution["avg_no2_2020_2024"].mean()
+            if "avg_no2_2020_2024" in pollution.columns
+            else 0
+        )
         st.metric(
             "Avg NO2 (µg/m³)",
             f"{avg_no2:.1f}",
             f"{avg_no2 - 10:.1f} above WHO" if avg_no2 > 10 else "Within WHO limits",
-            delta_color="inverse"
+            delta_color="inverse",
         )
 
     with col4:
-        exceeds = pollution['exceeds_who_no2'].sum() if 'exceeds_who_no2' in pollution.columns else 0
+        exceeds = (
+            pollution["exceeds_who_no2"].sum()
+            if "exceeds_who_no2" in pollution.columns
+            else 0
+        )
         st.metric(
             "Sites > WHO Limit",
             exceeds,
-            f"{(exceeds/len(pollution)*100):.0f}% of sites"
+            f"{(exceeds/len(pollution)*100):.0f}% of sites",
         )
 
     # CAZ Zone details
     st.subheader("🎯 CAZ Zone Details")
 
     for idx, row in clusters_gdf.iterrows():
-        with st.expander(f"{row['Cluster']} - {row.get('key_locations', 'Unknown Area')[:50]}..."):
+        with st.expander(
+            f"{row['Cluster']} - {row.get('key_locations', 'Unknown Area')[:50]}..."
+        ):
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 **📍 Location Details:**
                 - Coordinates: ({row.geometry.y:.4f}, {row.geometry.x:.4f})
                 - Key Areas: {row.get('key_locations', 'N/A')}
                 - Major Roads: {row.get('major_roads', 'N/A')}
-                """)
+                """
+                )
             with col2:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 **📊 Monitoring Points:**
                 - Traffic Points: {int(row['traffic_points'])}
                 - Air Quality Points: {int(row['pollution_points'])}
                 - Total Points: {int(row['n_points'])}
-                """)
+                """
+                )
 
 with tab3:
     st.header("📈 Data Analysis")
@@ -428,56 +519,72 @@ with tab3:
     # NO2 Distribution
     st.subheader("NO2 Concentration Distribution")
 
-    if 'avg_no2_2020_2024' in pollution.columns:
+    if "avg_no2_2020_2024" in pollution.columns:
         fig = px.histogram(
             pollution,
-            x='avg_no2_2020_2024',
+            x="avg_no2_2020_2024",
             nbins=30,
             title="Distribution of NO2 Concentrations (2020-2024 Average)",
-            labels={'avg_no2_2020_2024': 'NO2 Concentration (µg/m³)', 'count': 'Number of Sites'},
-            color_discrete_sequence=['#1E90FF']
+            labels={
+                "avg_no2_2020_2024": "NO2 Concentration (µg/m³)",
+                "count": "Number of Sites",
+            },
+            color_discrete_sequence=["#1E90FF"],
         )
-        fig.add_vline(x=10, line_dash="dash", line_color="red", annotation_text="WHO Limit")
-        fig.add_vline(x=40, line_dash="dash", line_color="orange", annotation_text="UK Limit")
+        fig.add_vline(
+            x=10, line_dash="dash", line_color="red", annotation_text="WHO Limit"
+        )
+        fig.add_vline(
+            x=40, line_dash="dash", line_color="orange", annotation_text="UK Limit"
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     # Traffic volume by road
     st.subheader("Traffic Volume by Road")
 
-    if 'road_name' in traffic.columns and 'all_motor_vehicles' in traffic.columns:
-        traffic_by_road = traffic_filtered.groupby('road_name')['all_motor_vehicles'].sum().sort_values(ascending=True).tail(10)
+    if "road_name" in traffic.columns and "all_motor_vehicles" in traffic.columns:
+        traffic_by_road = (
+            traffic_filtered.groupby("road_name")["all_motor_vehicles"]
+            .sum()
+            .sort_values(ascending=True)
+            .tail(10)
+        )
 
         fig = px.bar(
             x=traffic_by_road.values,
             y=traffic_by_road.index,
-            orientation='h',
+            orientation="h",
             title="Top 10 Roads by Traffic Volume",
-            labels={'x': 'Total Vehicle Count', 'y': 'Road'},
-            color_discrete_sequence=['#FF6B35']
+            labels={"x": "Total Vehicle Count", "y": "Road"},
+            color_discrete_sequence=["#FF6B35"],
         )
         st.plotly_chart(fig, use_container_width=True)
 
     # Time series if available
-    if 'year' in traffic.columns:
+    if "year" in traffic.columns:
         st.subheader("Traffic Trends Over Time")
 
-        traffic_yearly = traffic.groupby('year')['all_motor_vehicles'].agg(['sum', 'mean'])
+        traffic_yearly = traffic.groupby("year")["all_motor_vehicles"].agg(
+            ["sum", "mean"]
+        )
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=traffic_yearly.index,
-            y=traffic_yearly['sum'],
-            mode='lines+markers',
-            name='Total Traffic',
-            line=dict(color='#FF6B35', width=3),
-            marker=dict(size=10)
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=traffic_yearly.index,
+                y=traffic_yearly["sum"],
+                mode="lines+markers",
+                name="Total Traffic",
+                line=dict(color="#FF6B35", width=3),
+                marker=dict(size=10),
+            )
+        )
 
         fig.update_layout(
             title="Traffic Volume Trend",
             xaxis_title="Year",
             yaxis_title="Total Vehicle Count",
-            hovermode='x unified'
+            hovermode="x unified",
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -485,40 +592,50 @@ with tab4:
     st.header("📝 Analysis Report")
 
     # Generate report summary
-    st.markdown("""
+    st.markdown(
+        """
     ### Executive Summary
 
     This analysis identifies optimal locations for Clean Air Zones (CAZ) in Sheffield based on:
     - **Traffic monitoring data** from major roads and junctions
     - **Air quality measurements** from NO2 diffusion tubes across the city
     - **K-means clustering** to identify zones with highest impact potential
-    """)
+    """
+    )
 
     # Zone recommendations
     st.subheader("🎯 Recommended CAZ Zones")
 
     for idx, row in clusters_gdf.iterrows():
-        st.markdown(f"""
+        st.markdown(
+            f"""
         #### {row['Cluster']}
         - **Location**: {row.get('key_locations', 'Unknown')}
         - **Major Roads**: {row.get('major_roads', 'N/A')}
         - **Coverage**: {int(row['pollution_points'])} air quality sites, {int(row['traffic_points'])} traffic points
         - **Coordinates**: {row.geometry.y:.6f}, {row.geometry.x:.6f}
-        """)
+        """
+        )
 
     # Key findings
     st.subheader("📊 Key Findings")
 
-    if 'avg_no2_2020_2024' in pollution.columns:
-        avg_no2 = pollution['avg_no2_2020_2024'].mean()
-        exceeds = pollution['exceeds_who_no2'].sum() if 'exceeds_who_no2' in pollution.columns else 0
+    if "avg_no2_2020_2024" in pollution.columns:
+        avg_no2 = pollution["avg_no2_2020_2024"].mean()
+        exceeds = (
+            pollution["exceeds_who_no2"].sum()
+            if "exceeds_who_no2" in pollution.columns
+            else 0
+        )
 
-        st.info(f"""
+        st.info(
+            f"""
         - **Average NO2 Concentration**: {avg_no2:.1f} µg/m³ (WHO limit: 10 µg/m³)
         - **Sites Exceeding WHO Guidelines**: {exceeds}/{len(pollution)} ({exceeds/len(pollution)*100:.0f}%)
         - **Identified CAZ Zones**: {n_zones}
         - **Total Monitoring Points**: {len(traffic) + len(pollution)}
-        """)
+        """
+        )
 
     # Download button for report
     report_text = f"""
@@ -549,14 +666,17 @@ RECOMMENDED CAZ ZONES:
         label="📥 Download Report",
         data=report_text,
         file_name=f"sheffield_caz_report_{pd.Timestamp.now().strftime('%Y%m%d')}.txt",
-        mime="text/plain"
+        mime="text/plain",
     )
 
 # Footer
 st.markdown("---")
-st.markdown("""
+st.markdown(
+    """
 <div style='text-align: center'>
     <p>🌍 Sheffield Clean Air Zone Analysis | Data: 2020-2024 |
     <a href='https://github.com/yourusername/sheffield-caz'>GitHub</a></p>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
